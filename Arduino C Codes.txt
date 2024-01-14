@@ -1,0 +1,109 @@
+/*
+ *   Transmitter side Code
+ * 
+  Module SX1278 // Arduino UNO/NANO
+    Vcc         ->   3.3V
+    MISO        ->   D12
+    MOSI        ->   D11
+    SLCK        ->   D13
+    Nss         ->   D10 
+    GND         ->   GND
+    Reset       ->   Reset
+    HMD Sensor ---> 4
+    reset 6 ya değişti
+ */
+#include <SPI.h>
+#include <LoRa.h>
+#include <dht.h>
+ 
+#define pin 4
+dht DHT;
+int passwordCo2 = 5221;
+int passwordTemp = 5223;
+int passwordHum = 5225;
+//5225200
+
+
+void setup() {
+  pinMode(8, OUTPUT);
+  Serial.begin(9600);
+
+
+  while (!Serial);
+  Serial.println("LoRa Sender");
+
+  if (!LoRa.begin(433E6)) { // or 915E6, the MHz speed of your module
+    Serial.println("Starting LoRa failed!");
+    while (1);
+  }
+}
+
+void loop() {
+  int c = analogRead(A0);
+  int y = ((0.1598*c*c) - (52.337*c)+4071); //MQ-135 Sensor
+
+int readData = DHT.read22(pin);
+
+   int isi = DHT.temperature;
+
+   int nem = DHT.humidity;
+
+Serial.println(c); //Controlling A0
+ Serial.print ("CO2 PPM:") ;
+ 
+Serial.println(y);
+
+   Serial.print(isi);
+
+    Serial.print(" C");
+
+   Serial.print("\t");
+
+Serial.print("%");
+
+   Serial.println(nem);
+
+/* String deneme
+String ys =String(y);
+String isist =String(isi);
+String nems = String(nem);
+*/
+// deneme
+// Starting communication value
+ LoRa.beginPacket(); 
+  
+ LoRa.print("");
+  LoRa.endPacket();
+  delay(200);
+
+  LoRa.beginPacket(); 
+  LoRa.print(passwordCo2);
+  LoRa.print(y);
+  LoRa.endPacket();
+  delay(200);
+
+  // LoRa.print(",");
+  LoRa.beginPacket(); 
+  LoRa.print(passwordTemp);
+  LoRa.print(isi);
+  LoRa.endPacket();
+  delay(200);
+  // LoRa.print(",");
+  
+   LoRa.beginPacket(); 
+   LoRa.print(passwordHum);
+  LoRa.print(nem);
+  LoRa.endPacket();
+  
+  delay(200);
+
+if (y > 1500){
+digitalWrite(8, HIGH);
+}
+
+else {
+  digitalWrite(8, LOW);
+}
+delay(100);
+
+ }
